@@ -5,7 +5,7 @@ Arbitrary precision root finding with boost and NTL.
 
 Doxygen code documentation hosed on gh-pages branch at : 
 
-http://wavescholar.github.com/Arbitrary-Precision-Analytics/index.html
+http://brucebcampbell.github.com/Arbitrary-Precision-Analytics/index.html
 
 This repository is a small project to write a library that instrumented some of the boost numerical functions with the arbitrary precision computation provided by NTL. 
 
