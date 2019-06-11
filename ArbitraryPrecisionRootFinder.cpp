@@ -1,28 +1,28 @@
 // ArbitraryPrecisionRootFinder.cpp 
-//Bruce B Campbell for Dr. Mari Mori
+// Bruce B Campbell 
 //#define BOOST_MATH_INSTRUMENT
 #include <boost/math/tools/roots.hpp>
 #include <limits>
 
 namespace boost{ namespace math{ namespace tools{
 
-	template <class F, class T>
-	T newton_raphson_iterate(F f, T guess, T min, T max, int digits);
+template <class F, class T>
+T newton_raphson_iterate(F f, T guess, T min, T max, int digits);
 
-	template <class F, class T>
-	T newton_raphson_iterate(F f, T guess, T min, T max, int digits, boost::uintmax_t& max_iter);
+template <class F, class T>
+T newton_raphson_iterate(F f, T guess, T min, T max, int digits, boost::uintmax_t& max_iter);
 
-	template <class F, class T>
-	T halley_iterate(F f, T guess, T min, T max, int digits);
+template <class F, class T>
+T halley_iterate(F f, T guess, T min, T max, int digits);
 
-	template <class F, class T>
-	T halley_iterate(F f, T guess, T min, T max, int digits, boost::uintmax_t& max_iter);
+template <class F, class T>
+T halley_iterate(F f, T guess, T min, T max, int digits, boost::uintmax_t& max_iter);
 
-	template <class F, class T>
-	T schroeder_iterate(F f, T guess, T min, T max, int digits);
+template <class F, class T>
+T schroeder_iterate(F f, T guess, T min, T max, int digits);
 
-	template <class F, class T>
-	T schroeder_iterate(F f, T guess, T min, T max, int digits, boost::uintmax_t& max_iter);
+template <class F, class T>
+T schroeder_iterate(F f, T guess, T min, T max, int digits, boost::uintmax_t& max_iter);
 
 }}} 
 
@@ -112,7 +112,7 @@ Under ideal conditions, the number of correct digits trebles with each iteration
 Schroeder's Method 
 Given an initial guess x0 the subsequent values are computed using: 
 x_{n+1} = x{n}- \frac{f(x)}{f'(x)} - \frac{f''(x)(f(x))^2}{2(f'(x))^3}
-
+ 
 Over-compensation by the second derivative (one which would proceed in the wrong direction) causes the method to revert to a Newton-Raphson step. Likewise a Newton step is used whenever that Newton step would change the next value by more than 10%. 
 
 Out of bounds steps revert to bisection of the current bounds. 
@@ -124,7 +124,7 @@ Let's suppose we want to find the cube root of a number: the equation we want to
 f(x) = x^3-a
 f'(x) = 3x^2;
 f''(x)=6x;
-
+ 
 
 To begin with lets solve the problem using Newton-Raphson iterations, we'll begin by defining a function object 
 (functor) that returns the evaluation of the function to solve, along with its first derivative f'(x): 
@@ -133,27 +133,27 @@ The code below is for Newton-Rhaphson
 template <class T>
 struct cbrt_functor
 {
-cbrt_functor(T const& target) : a(target)
-{ // Constructor stores value to be 'cube-rooted'.
-}
-boost::math::tuple<T, T> operator()(T const& z)
-{ // z is estimate so far.
-return boost::math::make_tuple(
-z*z*z - a, // return both f(x)
-3 * z*z);  // and f'(x)
-}
+   cbrt_functor(T const& target) : a(target)
+   { // Constructor stores value to be 'cube-rooted'.
+   }
+   boost::math::tuple<T, T> operator()(T const& z)
+   { // z is estimate so far.
+      return boost::math::make_tuple(
+      z*z*z - a, // return both f(x)
+      3 * z*z);  // and f'(x)
+   }
 private:
-T a; // to be 'cube-rooted'.
+   T a; // to be 'cube-rooted'.
 };
 
 template <class T>T cbrt(T z){
-using namespace std; // for frexp, ldexp, numeric_limits.
-using namespace boost::math::tools;   int exp;
-frexp(z, &exp); // Get exponent of z (ignore mantissa).
-T min = ldexp(0.5, exp/3);   T max = ldexp(2.0, exp/3);
-T guess = ldexp(1.0, exp/3); // Rough guess is to divide the exponent by three.
-int digits = std::numeric_limits<T>::digits; // Maximum possible binary digits accuracy for type T.
-return newton_raphson_iterate(detail::cbrt_functor<T>(z), guess, min, max, digits);
+   using namespace std; // for frexp, ldexp, numeric_limits.
+   using namespace boost::math::tools;   int exp;
+   frexp(z, &exp); // Get exponent of z (ignore mantissa).
+   T min = ldexp(0.5, exp/3);   T max = ldexp(2.0, exp/3);
+   T guess = ldexp(1.0, exp/3); // Rough guess is to divide the exponent by three.
+   int digits = std::numeric_limits<T>::digits; // Maximum possible binary digits accuracy for type T.
+   return newton_raphson_iterate(detail::cbrt_functor<T>(z), guess, min, max, digits);
 }
 
 The implementation below in this header uses Halley's method.
@@ -165,39 +165,39 @@ template <class T>
 
 struct cbrt_functor
 {
-	cbrt_functor(T const& target) : a(target){}
-	std::tr1::tuple<T, T, T> operator()(T const& z)
-	{
-		T sqr = z * z;
-		return std::tr1::make_tuple(sqr * z - a, 3 * sqr, 6 * z);
-	}
+   cbrt_functor(T const& target) : a(target){}
+   std::tr1::tuple<T, T, T> operator()(T const& z)
+   {
+      T sqr = z * z;
+      return std::tr1::make_tuple(sqr * z - a, 3 * sqr, 6 * z);
+   }
 private:
-	T a;
+   T a;
 };
 
 template <class T>
 T kl_arbitrary_precision_root(T z, unsigned int precision)
 {
-	using namespace std;
-	int exp;
-	frexp(z, &exp);
-	T min = ldexp(0.5, exp/3);
-	T max = ldexp(2.0, exp/3);
-	T guess = ldexp(1.0, exp/3);
-	int digits = std::numeric_limits<T>::digits / 2;
+   using namespace std;
+   int exp;
+   frexp(z, &exp);
+   T min = ldexp(0.5, exp/3);
+   T max = ldexp(2.0, exp/3);
+   T guess = ldexp(1.0, exp/3);
+   int digits = std::numeric_limits<T>::digits / 2;
 
-	//cout<<"Typeid for  call to kl_arbitrary_precision_root(T z, unsigned int precision) "<<typeid(z).name()<<endl<<endl;
+	cout<<"Typeid for  call to kl_arbitrary_precision_root(T z, unsigned int precision) "<<typeid(z).name()<<endl<<endl;
 
 	string zType =typeid(z).name();
 	int usingArb = zType.compare(typeid(boost::math::ntl::RR).name());
 	if (usingArb==0)
 	{
-		//cout<<"We're using arbitrary precision in kl_arbitrary_precision_root"<<endl<<endl;;
+		cout<<"We're using arbitrary precision in kl_arbitrary_precision_root"<<endl<<endl;;
 		digits = precision /2;
 	}
 
-	T ans =boost::math::tools::halley_iterate(cbrt_functor<T>(z), guess, min, max, digits);
-	return ans;
+   T ans =boost::math::tools::halley_iterate(cbrt_functor<T>(z), guess, min, max, digits);
+   return ans;
 }
 
 #include <iostream>
@@ -205,40 +205,22 @@ using namespace std;
 
 #include <float.h>
 
-/*
-Calculates inverse cube root value. Vector variant of invcbrt(x) function for a 128-bit/256-bit vector argument of float64 values.
-*/
-//#include <mathimf.h >
-//__m128d _mm_invcbrt_pd(__m128d v1);
-//double cbrt(double x);
-//long double cbrtl(long double x);
-//float cbrtf(float x);
-
 //For NTL
 #include < boost/math/bindings/rr.hpp>
 using boost::math::ntl::RR;
 
-
-//For QueryPerformanceCounter
-#include <tchar.h>
-#include <windows.h>
-
-int testMaxCampbellPrime();
-
 int main(int argc, char* argv[])
 {
-	testMaxCampbellPrime();
-	
 	cout<<endl<<endl<<"Put an integer number in  - like 794"<<endl<<endl;
-	double mariIn ;
-	cin>>mariIn;
+	double argIn ;
+	cin>>argIn;
 	do
 	{
-		cout<<"Ok Then we're going to fnd the root of "<<mariIn<<endl;
+		cout<<"Ok Then we're going to fnd the root of "<<argIn<<endl;
 		cout<<"First we're going to clear the floating point error registers on the microprocessor."<<endl<<endl;
 
 		/*
-		First a bit about Floating Point Exceptions
+		Some Background on floating point exceptions
 
 		The IEEE floating point standard defines several exceptions that occur when the result of a floating point operation is unclear or undesirable. 
 		Exceptions can be ignored, in which case some default action is taken, such as returning a special value. 
@@ -294,7 +276,7 @@ int main(int argc, char* argv[])
 		else
 			cout<<"We have no floating point problems Houston SSE and x87 status is "<<myStatus87<<endl<<endl;
 
-		float z = mariIn;
+		float z = argIn;
 		float root =kl_arbitrary_precision_root( z,32 ); 
 		std::cout.precision(std::numeric_limits<float>::digits);
 
@@ -315,7 +297,7 @@ int main(int argc, char* argv[])
 		cout<<"Let's try a double - that's 64 bit precision. "<<endl<<endl;
 
 		_clearfp();
-		double zD= mariIn;
+		double zD= argIn;
 		double rootD = kl_arbitrary_precision_root( zD,64);
 		std::cout.precision(std::numeric_limits<double>::digits);
 
@@ -329,13 +311,15 @@ int main(int argc, char* argv[])
 		}		
 		cout<<endl<<"Now let's check our answer. "<<endl<<"r*r*r ="<<rootD<<" * "<<rootD<<" * "<<rootD<<" = " <<rootD*rootD*rootD<<endl<<endl;
 
-		cout<<"Let's try a long double - that's 128 bit precision. "<<endl<<endl;
+		cout<<"Let's try a long double - that's 128 bit precision. Or it should be"<<endl<<endl;
 
-		//Note we need the /Qlong-double option to get this to compile. 
-		//note this is not working in debug build yet!
-#ifndef _DEBUG
+		/*Previous 16-bit versions of Microsoft C/C++ and Microsoft Visual C++ supported the long double, 80-bit precision data type.
+		In Win32 programming, however, the long double data type maps to the double, 64-bit precision data type.The Microsoft run-time 
+		library provides long double versions of the math functions only for backward compatibility.The long double function prototypes 
+		are identical to the prototypes for their double counterparts, except that the long double data type replaces the double data type.
+		The long double versions of these functions should not be used in new code. */
 		_clearfp();
-		long double zLD= mariIn;
+		long double zLD= argIn;
 		long double rootLD = kl_arbitrary_precision_root( zLD,128);
 		std::cout.precision(std::numeric_limits<long double>::digits);
 
@@ -347,9 +331,10 @@ int main(int argc, char* argv[])
 			cout<<"We have checked the floating point status word and the resut is that rounding has occured."<<endl<<endl;
 			cout<<"x87 status is "<<myStatus87<<" _SW_INEXACT"<<endl<<endl;
 		}		
-		cout<<"Same Answer?  Yeah, we're not using the Intel Compiler. That's a homework assignment  Read the comments to find out more"<<endl<<endl;
+		cout<<"Same Answer?  Then you are not using the Intel Compiler.  If you get no answer then see code comments"<<endl<<endl;
+		
 		/*
-		On the x86 architecture, most compilers implement long double as the 80-bit extended precision type supported by that hardware 
+	    On the x86 architecture, most compilers implement long double as the 80-bit extended precision type supported by that hardware 
 		(sometimes stored as 12 or 16 bytes to maintain data structure alignment). An exception is Microsoft Visual C++ for x86, 
 		which makes long double a synonym for double. The Intel C++ compiler on Microsoft Windows supports extended precision, but 
 		requires the /Qlong-double switch to access the hardware's extended precision format.
@@ -363,26 +348,15 @@ int main(int argc, char* argv[])
 		The Intel C++ Compiler for x86, on the other hand, enables extended-precision mode by default.		
 		*/
 
-#endif
+		/* /Qlong-double and /Qpc80 have been dropped from your version, it seems the option may have been removed. 
+		These options were problematical, as they weren't supported correctly in the Microsoft run-time libraries.
+		The original Parallel Studio dropped a few features of the separate ICL */
 
-		/*
-		Use Intel Intrinsic to calculate cube root 
-
-		//double rootIntelCrbtD=  cbrt(mariIn);
-		//long double rootIntelCrbtLD =cbrtl(mariIn);
-		//float rootIntelCrbtf =cbrtf(mariIn);
-
-
-		//cout<<endl<<"But first I'm going to give you the value calculated via Intel Intrisics"<<endl;
-		//cout<<"\tfloat val = "<<rootIntelCrbtf<<endl<<endl;
-		//cout<<"\tdoube val = "<<rootIntelCrbtD<<endl<<endl;
-		//cout<<"\tlong doube val = "<<rootIntelCrbtLD<<endl<<endl;
-		*/
 		cout<<"Now we are going to use arbitrary precision to find your root."<<endl<<endl;
 		cout<<"How many digits would you like? Enter a good number I tried it up to 2048 significands "<<endl<<endl;
 		unsigned int precision;
 		cin>>precision;
-		cout<<"OK, we're going to use "<<precision<<" significands to calculate the root of "<<mariIn<<endl<<endl;
+		cout<<"OK, we're going to use "<<precision<<" significands to calculate the root of "<<argIn<<endl<<endl;
 
 		/*
 		NTL by Victor Shoup has fixed and arbitrary high precision fixed and floating-point types. 
@@ -402,136 +376,28 @@ int main(int argc, char* argv[])
 		Arbitrary precision floating point with NTL class RR, default is 150 bit (about 50 decimal digits). 
 		*/
 
+		RR zRBP;
+		zRBP.SetPrecision(precision);
+		zRBP.SetOutputPrecision(precision);
 
+		RR rootRBP;
+		rootRBP.SetPrecision(precision);
+		rootRBP.SetOutputPrecision(precision);
 
-		LARGE_INTEGER* freq;
-		_LARGE_INTEGER* prefCountStart;
-		_LARGE_INTEGER* prefCountEnd;
-		freq=new _LARGE_INTEGER;
-		prefCountStart=new _LARGE_INTEGER;
-		prefCountEnd=new _LARGE_INTEGER;
-		QueryPerformanceFrequency(freq);
-		QueryPerformanceCounter(prefCountStart);
-		//for(int precisionIter = 1; precisionIter<precision;precisionIter++)
-		{
-			int precisionIter = precision;
-			RR zRBP;
-			zRBP.SetPrecision(precisionIter);
-			zRBP.SetOutputPrecision(precisionIter);
+		zRBP = argIn;
 
-			RR rootRBP;
-			rootRBP.SetPrecision(precisionIter);
-			rootRBP.SetOutputPrecision(precisionIter);
+		rootRBP = kl_arbitrary_precision_root( zRBP,precision);
 
-			zRBP = mariIn;
+		cout<<"Your root is "<<rootRBP<<endl;
 
-			//clock_t processMilisec = clock();
-			QueryPerformanceCounter(prefCountStart);
-			rootRBP = kl_arbitrary_precision_root( zRBP,precisionIter);
-			QueryPerformanceCounter(prefCountEnd);
-			//rootRBP = kl_arbitrary_precision_root( zRBP,precision);
-			//processMilisec = clock() - processMilisec;
-			//cout<<precisionIter<<" : "<<processMilisec<< " ";
-			cout<<"Runtime (millisec) for precision "<<precisionIter<<" = "<<double(prefCountEnd->QuadPart-prefCountStart->QuadPart)/double(freq->QuadPart)<<endl;   
-			cout<<"Your root is "<<rootRBP<<endl;
-			cout<<"And  r*r*r ="<<endl<<endl<<rootRBP<<" * "<<endl<<endl<<rootRBP<<" * "<<endl<<endl<<rootRBP<<" = "<<endl<<endl<<rootRBP*rootRBP*rootRBP<<endl<<endl;
-		}
+		cout<<"And  r*r*r ="<<endl<<endl<<rootRBP<<" * "<<endl<<endl<<rootRBP<<" * "<<endl<<endl<<rootRBP<<" = "<<endl<<endl<<rootRBP*rootRBP*rootRBP<<endl<<endl;
 
 		cout<<"Enter anything other than 0 if you want to go again : "<<endl;
 
-		cin>>mariIn;
+		cin>>argIn;
 
-	}while(mariIn>0);
+	}while(argIn>0);
 
 	return 0;
 }
 
-#include <NTL/ZZ.h>
-
-using namespace std;
-using namespace NTL;
-
-long witness(const ZZ& n, const ZZ& x)
-{
-   ZZ m, y, z;
-   long j, k;
-
-   if (x == 0) return 0;
-
-   // compute m, k such that n-1 = 2^k * m, m odd:
-
-   k = 1;
-   m = n/2;
-   while (m % 2 == 0) {
-      k++;
-      m /= 2;
-   }
-
-   z = PowerMod(x, m, n); // z = x^m % n
-   if (z == 1) return 0;
-
-   j = 0;
-   do {
-      y = z;
-      z = (y*y) % n; 
-      j++;
-   } while (j < k && z != 1);
-
-   return z != 1 || y != n-1;
-}
-
-long PrimeTest(const ZZ& n, long t)
-{
-   if (n <= 1) return 0;
-
-   // first, perform trial division by primes up to 2000
-
-   PrimeSeq s;  // a class for quickly generating primes in sequence
-   long p;
-
-   p = s.next();  // first prime is always 2
-   while (p && p < 2000) {
-      if ((n % p) == 0) return (n == p);
-      p = s.next();  
-   }
-
-   // second, perform t Miller-Rabin tests
-
-   ZZ x;
-   long i;
-
-   for (i = 0; i < t; i++) {
-      x = RandomBnd(n); // random number between 0 and n-1
-
-      if (witness(n, x)) 
-         return 0;
-   }
-
-   return 1;
-}
-
-int testMaxCampbellPrime()
-{
-   const int bitsToUse =63;
-   //int powers[bitsToUse] = {0,1,0,0,1,1,0,1,0,1,1,0,0,0,0,1,0,1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,1,1,0,0,0,0,1,0,1,1,0,1,1,0,1,0,1,1,1,0,0,0,0,0,1,1,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,1,0,1,1,0,0,0,1,1,0,1,1,0};
-   int powers[bitsToUse] ={1,1,0,1,1,0,1,0,1,1,0,0,0,0,1,0,1,1,1,1,0,0,0,0,1,1,0,0,0,1,1,0,1,1,0,0,0,0,1,0,1,1,0,1,1,0,1,0,1,1,1,0,0,0,0,0,1,1,0,0,0,1,0};   
-   ZZ n;//ZZ() initial value is 0.
-   for(int i=0;i<95;i++)
-   {
-	   if (powers[i]==1)
-	   {
-		   long expi = i;
-		   long two = 2;
-		   ZZ n2 =power_ZZ(2,i); 
-
-		   n=n+n2;
-		   cout <<n<<endl;
-	   }
-   }
-   if (PrimeTest(n, 10))
-      cout << n << " is probably prime\n";
-   else
-      cout << n << " is composite\n";
-}
-
-#include <limits.h>
